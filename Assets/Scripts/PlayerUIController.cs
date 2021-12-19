@@ -7,6 +7,7 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
 {
     #region SerializeField Variables
     [SerializeField] private RectTransform rectUI;
+    [SerializeField] private RectTransform crossHairRect;
     [SerializeField] private Transform bulletSpawnPos;
     [SerializeField] private Transform bulletTrans;
     [SerializeField] private Camera camInGameUI;
@@ -51,16 +52,19 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
         if (fingerLeftId != -1)
             LookAround();
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector2 screenPoint = camInGameUI.ViewportToScreenPoint(new Vector3(0.5f, 0.5f, 0));
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(rectUI, screenPoint, camInGameUI, out worldPoint);
+    }
 
-            Transform go = PoolManager.Pools["BulletPlayer_Pool"].Spawn(bulletTrans, bulletSpawnPos.position, Quaternion.identity);
-            go.SetParent(null);
-            go.GetComponent<BulletPlayer>().Setup();
-            go.LookAt(worldPoint);
-        }
+    public void OnPressShoot()
+    {
+        Vector2 screenPoint = camInGameUI.ViewportToScreenPoint(new Vector2(0.5f,0.5f));
+
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(rectUI, screenPoint, camInGameUI, out worldPoint);
+
+        Transform go = PoolManager.Pools["BulletPlayer_Pool"].Spawn(bulletTrans, bulletSpawnPos.position, Quaternion.identity);
+        go.SetParent(null);
+        go.GetComponent<BulletPlayer>().Setup();
+
+        go.LookAt(worldPoint);
     }
 
     private void GetTouchInput()
