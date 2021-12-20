@@ -8,7 +8,16 @@ public class WeaponBase : MonoBehaviour
     #region Serialize Field
     [SerializeField] protected Transform bulletTrans;
     [SerializeField] protected Transform bulletSpawnPos;
+    [SerializeField] protected Transform effectGunFlash;
+    [SerializeField] protected Transform effectBlood;
+    [SerializeField] protected Transform effectImpact;
+    [SerializeField] protected AudioSource audioSource;
+
+    [SerializeField] protected AudioClip audioFireClip;
+    [SerializeField] protected AudioClip audioReloadClip;
+
     [SerializeField] protected WeaponAnimatorController weaponAnimatorController;
+
     #endregion
 
     #region Private Variables
@@ -59,6 +68,7 @@ public class WeaponBase : MonoBehaviour
     {
         if(!isReloading && currentAmmo<maxAmmo)
         {
+            audioSource.PlayOneShot(audioReloadClip);
             isReloading = true;
             ieOnReload = IEOnActionReload();
             StartCoroutine(ieOnReload);    
@@ -79,13 +89,26 @@ public class WeaponBase : MonoBehaviour
     {
         if(!isReloading)
         {
+            Transform effectFlashTrans = PoolManager.Pools["GunFlash_Pool"].Spawn(effectGunFlash, bulletSpawnPos);
+            effectFlashTrans.localPosition = Vector3.zero;
+            effectBlood.transform.forward = bulletSpawnPos.transform.forward;
             weaponAnimatorController.SetTrigger_fire();
             _CurrentAmmo -= 1;
             RaycastHit rcHit;
+            audioSource.PlayOneShot(audioFireClip);
             if (Physics.Raycast(ray, out rcHit))
             {
                 Transform objectHit = rcHit.transform;
-                Debug.Log("Name " + objectHit.name);
+                EnemyZombie zombie = objectHit.GetComponent<EnemyZombie>();
+                if (zombie != null)
+                {
+                    PoolManager.Pools["Blood_Pool"].Spawn(effectBlood, rcHit.point, Quaternion.identity);
+                    zombie.OnGotHit(30);
+                }
+                else
+                {
+                    PoolManager.Pools["DirtImpact_Pool"].Spawn(effectImpact, rcHit.point, Quaternion.identity);
+                }
             }
         }
     }
