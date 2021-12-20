@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using PathologicalGames;
 
 public class PlayerUIController : SingletonMono<PlayerUIController>
@@ -21,8 +22,7 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
     private int fingerRightId;
     private Vector2 lookInput;
     private Quaternion originalRotation;
-    private Vector3 worldPoint;
-    private Vector3 viewPort;
+    private bool onHoldShoot;
     #endregion
 
     #region Public Variables 
@@ -32,6 +32,7 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
     public float minimumY = -60f;
     public float maximumY = 60f;
 
+    public Text currentAmmoText;
     public Rigidbody rgBody;
     #endregion
 
@@ -52,19 +53,27 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
         if (fingerLeftId != -1)
             LookAround();
 
+        if (onHoldShoot)
+            OnPressShoot();
+    }
+    public void OnHoldShoot(bool isHolding)
+    {
+        onHoldShoot = isHolding;
+    }
+    private void OnPressShoot()
+    {
+        Ray ray = camInGameUI.ViewportPointToRay(new Vector3(0.5f,0.5f,0));
+        PlayerController.Instance.OnShoot(ray);
     }
 
-    public void OnPressShoot()
+    public void OnPressReload()
     {
-        Vector2 screenPoint = camInGameUI.ViewportToScreenPoint(new Vector2(0.5f,0.5f));
+        PlayerController.Instance.OnPressReload();
+    }
 
-        RectTransformUtility.ScreenPointToWorldPointInRectangle(rectUI, screenPoint, camInGameUI, out worldPoint);
-
-        Transform go = PoolManager.Pools["BulletPlayer_Pool"].Spawn(bulletTrans, bulletSpawnPos.position, Quaternion.identity);
-        go.SetParent(null);
-        go.GetComponent<BulletPlayer>().Setup();
-
-        go.LookAt(worldPoint);
+    public void OnUpdateCurrentAmmoText(int currentAmmo)
+    {
+        currentAmmoText.text = currentAmmo.ToString();
     }
 
     private void GetTouchInput()
