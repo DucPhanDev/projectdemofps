@@ -21,6 +21,7 @@ public class PlayerController : SingletonMono<PlayerController>
 
     private void Setup()
     {
+        currentHp = maxHp = 300;
         weaponIndex = 0;
         foreach (WeaponBase e in lstWeapons)
         {

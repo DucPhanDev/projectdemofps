@@ -7,10 +7,13 @@ using PathologicalGames;
 public class PlayerUIController : SingletonMono<PlayerUIController>
 {
     #region SerializeField Variables
-    [SerializeField] private RectTransform rectUI;
-    [SerializeField] private RectTransform crossHairRect;
-    [SerializeField] private Transform bulletSpawnPos;
-    [SerializeField] private Transform bulletTrans;
+    [SerializeField] private Text waveCountText;
+    [SerializeField] private Text enemyCountText;
+    [SerializeField] private Text textWinLose;
+    [SerializeField] private Text textYourScore;
+    [SerializeField] private Text textYourScoreEndMission;
+    [SerializeField] private GameObject endMissionUI;
+    [SerializeField] private GameObject guideRotateCamera;
     [SerializeField] private Camera camInGameUI;
     #endregion
 
@@ -20,6 +23,7 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
     private float halfScreenWidth;
     private int fingerLeftId;
     private int fingerRightId;
+    private int yourScore = 0;
     private Vector2 lookInput;
     private Quaternion originalRotation;
     private bool onHoldShoot;
@@ -38,6 +42,8 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
 
     void Start()
     {
+        if (InGameManager.Instance.isFirstTimeStart)
+            guideRotateCamera.SetActive(true);
         fingerLeftId = -1;
         fingerRightId = -1;
         halfScreenWidth = Screen.width / 2;
@@ -45,8 +51,14 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
         if (rgBody)
             rgBody.freezeRotation = true;
         originalRotation = transform.localRotation;
-    }
 
+        Setup();
+    }
+    public void Setup()
+    {
+        yourScore = 0;
+        OnUpdateScore(0);
+    }
     private void Update()
     {
         GetTouchInput();
@@ -76,6 +88,14 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
         currentAmmoText.text = currentAmmo.ToString();
     }
 
+    public void OnUpdateScore(int score)
+    {
+        yourScore += score;
+        if (yourScore <= 0)
+            yourScore = 0;
+
+        textYourScore.text = "Score: " + yourScore;
+    }
     private void GetTouchInput()
     {
         for (int i = 0; i < Input.touchCount; i++)
@@ -121,7 +141,8 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
     }
     private void LookAround()
     {
-
+        InGameManager.Instance.isFirstTimeStart = false;
+        guideRotateCamera.SetActive(false);
         rotationX += lookInput.x * cameraSensitivity * Time.deltaTime;
         rotationY += lookInput.y * cameraSensitivity * Time.deltaTime;
         rotationX = ClampAngle(rotationX, minimumX, maximumX);
@@ -140,5 +161,28 @@ public class PlayerUIController : SingletonMono<PlayerUIController>
         return Mathf.Clamp(angle, min, max);
     }
 
+    public void OnUpdateEnemyCount(int enemyCount,int maxenemyCount)
+    {
+        enemyCountText.text = enemyCount + "/" + maxenemyCount;
+    }
+
+    public void OnUpdateWaveCount(int waveIndex)
+    {
+        waveCountText.text = "Wave " + (waveIndex + 1);
+    }
+
+    public void OnShowEndMissionUI(string text)
+    {
+        endMissionUI.SetActive(true);
+        textWinLose.text = text;
+        textYourScoreEndMission.text = textYourScore.text;
+    }
+
+    public void OnPressReplay()
+    {
+        endMissionUI.SetActive(false);
+        Setup();
+        InGameManager.Instance.Setup();
+    }
 
 }
