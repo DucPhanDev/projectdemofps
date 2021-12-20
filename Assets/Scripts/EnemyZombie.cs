@@ -55,6 +55,7 @@ public class EnemyZombie : MonoBehaviour
 
     public void Setup()
     {
+        navAgent.enabled = true;
         rateOfAttack = 3f;
         timeSinceLastAttack = 0;
         navAgent.isStopped = false;
@@ -89,7 +90,7 @@ public class EnemyZombie : MonoBehaviour
                 if(timeSinceLastAttack > rateOfAttack)
                 {
                     timeSinceLastAttack = 0;
-                    PlayerUIController.Instance.OnUpdateScore(-20);
+                    PlayerUIController.Instance.OnUpdateScore(-10);
                 }
             }
         }
@@ -105,6 +106,7 @@ public class EnemyZombie : MonoBehaviour
             isAlive = false;
             zombieCollider.enabled = false;
             navAgent.isStopped = true;
+            navAgent.enabled = false;
 
             skinnedMeshRenderer.material.DOFloat(1, shader_DissolveAmountId, 4f).OnComplete(() =>
             {
